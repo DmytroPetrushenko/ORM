@@ -1,4 +1,4 @@
-package org.knubisoft;
+package org.knubisoft.util;
 
 public enum FileContentTypeEnum {
     CSV,
