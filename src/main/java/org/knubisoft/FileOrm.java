@@ -6,9 +6,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.thoughtworks.xstream.XStream;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
@@ -19,6 +18,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.knubisoft.model.Person;
 import org.knubisoft.util.FileContentTypeEnum;
 
@@ -37,14 +38,24 @@ public class FileOrm {
         }
     }
 
-    private static FileContentTypeEnum findOutTypeFile(File file) {
+    private static FileContentTypeEnum findOutTypeFile(File file)  {
         String path = file.getPath();
-        return Arrays.stream(FileContentTypeEnum.values())
-                .filter(value -> path.matches(value.getPattern()))
-                .findFirst().orElseThrow(() -> {
-                    throw new UnsupportedOperationException("This file: " + file
-                        + " was not supported!");
-                });
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            StringBuilder builder = new StringBuilder();
+            String value;
+            while ((value = reader.readLine()) != null) {
+                builder.append(value);
+            }
+            String result = builder.toString();
+            return Arrays.stream(FileContentTypeEnum.values())
+                    .filter(e -> result.matches(e.getPattern()))
+                    .findFirst().orElseThrow(() -> {
+                        throw new UnsupportedOperationException("This file: " + file
+                                + " was not supported!");
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static <T extends Person> List<T> readXml(File file, Class<T> clazz) {

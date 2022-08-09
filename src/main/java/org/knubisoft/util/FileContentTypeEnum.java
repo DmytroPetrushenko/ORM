@@ -1,11 +1,11 @@
 package org.knubisoft.util;
 
 public enum FileContentTypeEnum {
-    CSV(".+\\.csv\\b"),
-    XML(".+\\.xml\\b"),
-    JSON(".+\\.json\\b");
+    CSV("(([\\w\\d\\-]+[,])+[\\w\\d\\-]+\\b)"),
+    XML("\\<\\?xml.+\\>\\<\\w+s\\>.*\\<\\/\\w+s\\>"),
+    JSON("\\[.*\\{.+\\}+.*\\]");
 
-    private String pattern;
+    private final String pattern;
 
     FileContentTypeEnum(String pattern) {
         this.pattern = pattern;
