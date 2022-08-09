@@ -14,6 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,19 +24,27 @@ import org.knubisoft.util.FileContentTypeEnum;
 
 public class FileOrm {
     public static <T extends Person> List<T> transform(File file,
-                                                       FileContentTypeEnum type,
                                                        Class<T> clazz) {
-        switch (type) {
+        FileContentTypeEnum typeEnum = findOutTypeFile(file);
+        switch (typeEnum) {
             case CSV:
                 return readerCsv(file, clazz);
             case JSON:
                 return readerJson(file);
             case XML:
-                return readXml(file, clazz);
             default:
-                throw new UnsupportedOperationException("This type of file: " + type
-                        + " was not supported!");
+                return readXml(file, clazz);
         }
+    }
+
+    private static FileContentTypeEnum findOutTypeFile(File file) {
+        String path = file.getPath();
+        return Arrays.stream(FileContentTypeEnum.values())
+                .filter(value -> path.matches(value.getPattern()))
+                .findFirst().orElseThrow(() -> {
+                    throw new UnsupportedOperationException("This file: " + file
+                        + " was not supported!");
+                });
     }
 
     private static <T extends Person> List<T> readXml(File file, Class<T> clazz) {
