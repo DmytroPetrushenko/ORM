@@ -20,22 +20,31 @@ import java.util.function.Function;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.knubisoft.model.Person;
+import org.knubisoft.strategy.Strategy;
+import org.knubisoft.strategy.StrategyCsv;
+import org.knubisoft.strategy.StrategyJson;
+import org.knubisoft.strategy.StrategyXml;
 import org.knubisoft.util.FileContentTypeEnum;
 
 public class FileOrm {
+    private Strategy strategy;
     public <T extends Person> List<T> transform(File file,
                                                        Class<T> clazz) {
         FileContentTypeEnum typeEnum = findOutTypeFile(file);
         switch (typeEnum) {
             case CSV:
-                return readerCsv(file, clazz);
+                strategy = new StrategyCsv();
+                break;
             case JSON:
-                return readerJson(file);
+                strategy = new StrategyJson();
+                break;
             case XML:
-                return readXml(file, clazz);
+                strategy = new StrategyXml();
+                break;
             default:
                 throw new RuntimeException("Unknown type" + typeEnum);
         }
+        return strategy.reader(file, clazz);
     }
 
     @SneakyThrows
@@ -48,61 +57,5 @@ public class FileOrm {
                     throw new UnsupportedOperationException("This file: " + file
                             + " was not supported!");
                 });
-    }
-
-    private <T extends Person> List<T> readXml(File file, Class<T> clazz) {
-        XStream xstream = new XStream();
-        xstream.alias("entity", Person.class);
-        xstream.alias("entities", List.class);
-        xstream.allowTypesByWildcard(new String[]{"org.knubisoft.**"});
-        return (List<T>) xstream.fromXML(file);
-    }
-
-    @SneakyThrows
-    private <T extends Person> List<T> readerCsv(File file, Class<T> clazz) {
-        List<T> result = new ArrayList<>();
-        try (CSVReader reader = new CSVReader(new FileReader(file))) {
-            String[] values;
-            reader.readNext();
-            while ((values = reader.readNext()) != null) {
-                result.add(createEntity(values, clazz));
-            }
-        }
-        return result;
-    }
-
-    @SneakyThrows
-    private <T extends Person> List<T> readerJson(File file) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper.readValue(file, new TypeReference<List<T>>() {});
-    }
-
-    @SneakyThrows
-    private <T extends Person> T createEntity(String[] values, Class<T> clazz) {
-        T instance = clazz.getConstructor().newInstance();
-        Field[] fields = clazz.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
-            field.setAccessible(true);
-            Class<?> type = field.getType();
-            field.set(instance, formatStringToFieldType(type, values[i]));
-        }
-        return instance;
-    }
-
-    private Object formatStringToFieldType(Class<?> type, String value) {
-        Map<Class<?>, Function<String, Object>> typeToFunction = new LinkedHashMap<>();
-        typeToFunction.put(String.class, s -> s);
-        typeToFunction.put(Float.class, Float::parseFloat);
-        typeToFunction.put(Integer.class, Integer::valueOf);
-        typeToFunction.put(Long.class, Long::valueOf);
-        typeToFunction.put(Double.class, Double::valueOf);
-        typeToFunction.put(LocalDate.class, LocalDate::parse);
-        typeToFunction.put(LocalDateTime.class, LocalDateTime::parse);
-
-        return typeToFunction.getOrDefault(type, defaultType -> {
-            throw new UnsupportedOperationException("Type is not supported by parse: " + type);
-        }).apply(value);
     }
 }
