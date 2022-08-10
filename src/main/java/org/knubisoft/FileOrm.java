@@ -23,7 +23,7 @@ import org.knubisoft.model.Person;
 import org.knubisoft.util.FileContentTypeEnum;
 
 public class FileOrm {
-    public static <T extends Person> List<T> transform(File file,
+    public <T extends Person> List<T> transform(File file,
                                                        Class<T> clazz) {
         FileContentTypeEnum typeEnum = findOutTypeFile(file);
         switch (typeEnum) {
@@ -39,7 +39,7 @@ public class FileOrm {
     }
 
     @SneakyThrows
-    private static FileContentTypeEnum findOutTypeFile(File file) {
+    private FileContentTypeEnum findOutTypeFile(File file) {
         String result = FileUtils.readFileToString(file, StandardCharsets.UTF_8)
                 .replaceAll("[\\n\\r]", "");
         return Arrays.stream(FileContentTypeEnum.values())
@@ -50,7 +50,7 @@ public class FileOrm {
                 });
     }
 
-    private static <T extends Person> List<T> readXml(File file, Class<T> clazz) {
+    private <T extends Person> List<T> readXml(File file, Class<T> clazz) {
         XStream xstream = new XStream();
         xstream.alias("entity", Person.class);
         xstream.alias("entities", List.class);
@@ -59,7 +59,7 @@ public class FileOrm {
     }
 
     @SneakyThrows
-    private static <T extends Person> List<T> readerCsv(File file, Class<T> clazz) {
+    private <T extends Person> List<T> readerCsv(File file, Class<T> clazz) {
         List<T> result = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(file))) {
             String[] values;
@@ -72,14 +72,14 @@ public class FileOrm {
     }
 
     @SneakyThrows
-    private static <T extends Person> List<T> readerJson(File file) {
+    private <T extends Person> List<T> readerJson(File file) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         return mapper.readValue(file, new TypeReference<List<T>>() {});
     }
 
     @SneakyThrows
-    private static <T extends Person> T createEntity(String[] values, Class<T> clazz) {
+    private <T extends Person> T createEntity(String[] values, Class<T> clazz) {
         T instance = clazz.getConstructor().newInstance();
         Field[] fields = clazz.getDeclaredFields();
         for (int i = 0; i < fields.length; i++) {
@@ -91,7 +91,7 @@ public class FileOrm {
         return instance;
     }
 
-    private static Object formatStringToFieldType(Class<?> type, String value) {
+    private Object formatStringToFieldType(Class<?> type, String value) {
         Map<Class<?>, Function<String, Object>> typeToFunction = new LinkedHashMap<>();
         typeToFunction.put(String.class, s -> s);
         typeToFunction.put(Float.class, Float::parseFloat);

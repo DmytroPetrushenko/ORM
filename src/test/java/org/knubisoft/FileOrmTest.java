@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 class FileOrmTest {
+    private final FileOrm fileOrm = new FileOrm();
     private static Person personCsv1;
     private static Person personCsv2;
     private static Person personJson1;
@@ -43,21 +44,21 @@ class FileOrmTest {
 
     @Test
     void transformCsv() {
-        List<Person> resultListCsv = FileOrm.transform(fileCsv, Person.class);
+        List<Person> resultListCsv = fileOrm.transform(fileCsv, Person.class);
         Assertions.assertEquals(personCsv1, resultListCsv.get(0));
         Assertions.assertEquals(personCsv2, resultListCsv.get(1));
     }
 
     @Test
     void transformJson() {
-        List<Person> resultListJson = FileOrm.transform(fileJson, Person.class);
+        List<Person> resultListJson = fileOrm.transform(fileJson, Person.class);
         Assertions.assertEquals(personJson1, resultListJson.get(0));
         Assertions.assertEquals(personJson2, resultListJson.get(1));
     }
 
     @Test
     void transformXml() {
-        List<Person> resultListXml = FileOrm.transform(fileXml, Person.class);
+        List<Person> resultListXml = fileOrm.transform(fileXml, Person.class);
         Assertions.assertEquals(personXml1, resultListXml.get(0));
         Assertions.assertEquals(personXml2, resultListXml.get(1));
     }
