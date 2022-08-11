@@ -6,13 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.knubisoft.injection.Inject;
 import org.knubisoft.model.Person;
-import org.knubisoft.util.FileContentTypeEnum;
 
-@Inject
 public class StrategyJson implements Strategy {
-    private final FileContentTypeEnum enumType = FileContentTypeEnum.JSON;
+    private final String template = "\\[.*\\{.+\\}+.*\\]";
 
     @Override
     @SneakyThrows
@@ -23,7 +20,7 @@ public class StrategyJson implements Strategy {
     }
 
     @Override
-    public FileContentTypeEnum getEnum() {
-        return enumType;
+    public boolean isApplyable(String content) {
+        return content.matches(template);
     }
 }

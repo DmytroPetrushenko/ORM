@@ -12,14 +12,14 @@ import org.knubisoft.model.Person;
 public class EntityReflectionUtil {
 
     @SneakyThrows
-    public <T extends Person> T createEntity(String[] values, Class<T> clazz) {
+    public <T extends Person> T createEntity(Map<String,String> map, Class<T> clazz) {
         T instance = clazz.getConstructor().newInstance();
         Field[] fields = clazz.getDeclaredFields();
-        for (int i = 0; i < fields.length; i++) {
-            Field field = fields[i];
+        for (Field field : fields) {
             field.setAccessible(true);
+            String value = map.get(field.getName());
             Class<?> type = field.getType();
-            field.set(instance, formatStringToFieldType(type, values[i]));
+            field.set(instance, formatStringToFieldType(type, value));
         }
         return instance;
     }

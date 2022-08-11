@@ -5,15 +5,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.SneakyThrows;
-import org.knubisoft.injection.Inject;
 import org.knubisoft.model.Person;
 import org.knubisoft.util.EntityReflectionUtil;
-import org.knubisoft.util.FileContentTypeEnum;
 
-@Inject
 public class StrategyCsv implements Strategy {
-    private final FileContentTypeEnum enumType = FileContentTypeEnum.CSV;
+    private final String template = "(([\\w\\d\\-]+[,])+[\\w\\d\\-]+\\b)";
     private final EntityReflectionUtil entityReflectionUtil = new EntityReflectionUtil();
 
     @Override
@@ -21,17 +21,19 @@ public class StrategyCsv implements Strategy {
     public <T extends Person> List<T> reader(File file, Class<T> clazz) {
         List<T> result = new ArrayList<>();
         try (CSVReader reader = new CSVReader(new FileReader(file))) {
-            String[] values;
-            reader.readNext();
-            while ((values = reader.readNext()) != null) {
-                result.add(entityReflectionUtil.createEntity(values, clazz));
+            String[] keyNameArray = reader.readNext();
+            for (String[] values : reader) {
+                Map<String, String> nameAndValuesMap = IntStream.range(0, keyNameArray.length)
+                        .boxed()
+                        .collect(Collectors.toMap(i -> keyNameArray[i], i -> values[i]));
+                result.add(entityReflectionUtil.createEntity(nameAndValuesMap, clazz));
             }
         }
         return result;
     }
 
     @Override
-    public FileContentTypeEnum getEnum() {
-        return enumType;
+    public boolean isApplyable(String content) {
+        return content.matches(template);
     }
 }
