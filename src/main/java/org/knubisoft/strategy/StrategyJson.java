@@ -6,15 +6,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.knubisoft.injection.Inject;
 import org.knubisoft.model.Person;
+import org.knubisoft.util.FileContentTypeEnum;
 
+@Inject
 public class StrategyJson implements Strategy {
+    private final FileContentTypeEnum enumType = FileContentTypeEnum.JSON;
 
     @Override
     @SneakyThrows
-    public  <T extends Person> List<T> reader(File file, Class<T> clazz) {
+    public <T extends Person> List<T> reader(File file, Class<T> clazz) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         return mapper.readValue(file, new TypeReference<List<T>>() {});
+    }
+
+    @Override
+    public FileContentTypeEnum getEnum() {
+        return enumType;
     }
 }

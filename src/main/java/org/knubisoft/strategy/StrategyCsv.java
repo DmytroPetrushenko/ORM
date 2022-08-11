@@ -6,10 +6,14 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.knubisoft.injection.Inject;
 import org.knubisoft.model.Person;
 import org.knubisoft.util.EntityReflectionUtil;
+import org.knubisoft.util.FileContentTypeEnum;
 
+@Inject
 public class StrategyCsv implements Strategy {
+    private final FileContentTypeEnum enumType = FileContentTypeEnum.CSV;
     private final EntityReflectionUtil entityReflectionUtil = new EntityReflectionUtil();
 
     @Override
@@ -24,5 +28,10 @@ public class StrategyCsv implements Strategy {
             }
         }
         return result;
+    }
+
+    @Override
+    public FileContentTypeEnum getEnum() {
+        return enumType;
     }
 }
